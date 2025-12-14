@@ -1,4 +1,4 @@
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
@@ -384,7 +384,8 @@ public class MyVector {
      * @return a random MyVector of with components ranging from 0 to 1
      */
     public static MyVector randomMyVector() {
-        Random rand = new Random();
+        // Optimization: Use ThreadLocalRandom to avoid expensive Random object creation
+        ThreadLocalRandom rand = ThreadLocalRandom.current();
 
         // Choose random floats between 0 and 1
         return new MyVector(rand.nextFloat(), rand.nextFloat());
