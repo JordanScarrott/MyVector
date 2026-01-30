@@ -2,9 +2,11 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
 
 /**
  * A 2-dimensional, single-precision, floating-point vector with operator methods
+ * Optimized for performance and extended capabilities.
  *
  * @author Jordan Scarrott
  */
@@ -30,10 +32,46 @@ public class MyVector {
     }
 
     /**
+     * Adds two vectors and stores the result in a target vector.
+     * Avoids allocation if target is provided.
+     *
+     * @param v1     the first vector
+     * @param v2     the second vector
+     * @param target the vector to store the result in (if null, a new vector is created)
+     * @return the target vector containing the sum
+     */
+    public static MyVector add(MyVector v1, MyVector v2, MyVector target) {
+        if (target == null) {
+            return new MyVector(v1.x + v2.x, v1.y + v2.y);
+        }
+        target.x = v1.x + v2.x;
+        target.y = v1.y + v2.y;
+        return target;
+    }
+
+    /**
      * Returns the difference of two <code>MyVectors</code>
      */
     public static MyVector sub(MyVector v1, MyVector v2) {
         return new MyVector(v1.x - v2.x, v1.y - v2.y);
+    }
+
+    /**
+     * Subtracts two vectors and stores the result in a target vector.
+     * Avoids allocation if target is provided.
+     *
+     * @param v1     the first vector
+     * @param v2     the second vector
+     * @param target the vector to store the result in (if null, a new vector is created)
+     * @return the target vector containing the difference
+     */
+    public static MyVector sub(MyVector v1, MyVector v2, MyVector target) {
+        if (target == null) {
+            return new MyVector(v1.x - v2.x, v1.y - v2.y);
+        }
+        target.x = v1.x - v2.x;
+        target.y = v1.y - v2.y;
+        return target;
     }
 
     /**
@@ -58,6 +96,56 @@ public class MyVector {
      */
     public static MyVector mult(MyVector v, float m) {
         return new MyVector(v.x * m, v.y * m);
+    }
+
+    /**
+     * Multiplies a vector by a scalar and stores the result in a target vector.
+     * Avoids allocation if target is provided.
+     *
+     * @param v      the vector to multiply
+     * @param m      the scalar
+     * @param target the vector to store the result in
+     * @return the target vector
+     */
+    public static MyVector mult(MyVector v, float m, MyVector target) {
+        if (target == null) {
+            return new MyVector(v.x * m, v.y * m);
+        }
+        target.x = v.x * m;
+        target.y = v.y * m;
+        return target;
+    }
+
+    /**
+     * Returns the quotient of the specified <code>MyVector</code> and the
+     * specified scalar number as a <b>new</b> <code>MyVector</code>
+     *
+     * @param v the <code>MyVector</code> to be divided
+     * @param m the scalar by which the specified <code>MyVectors</code> components
+     *          will be divided
+     * @return a new <code>MyVector</code> that is the quotient of the specified
+     * <code>MyVector</code> and the specified scalar
+     */
+    public static MyVector div(MyVector v, float m) {
+        return new MyVector(v.x / m, v.y / m);
+    }
+
+    /**
+     * Divides a vector by a scalar and stores the result in a target vector.
+     * Avoids allocation if target is provided.
+     *
+     * @param v      the vector to divide
+     * @param m      the scalar
+     * @param target the vector to store the result in
+     * @return the target vector
+     */
+    public static MyVector div(MyVector v, float m, MyVector target) {
+        if (target == null) {
+            return new MyVector(v.x / m, v.y / m);
+        }
+        target.x = v.x / m;
+        target.y = v.y / m;
+        return target;
     }
 
     /**
@@ -120,7 +208,9 @@ public class MyVector {
      * @return this <code>MyVector</code> after the addition
      */
     public MyVector add(MyVector v) {
-        return this.add(v.x, v.y);
+        this.x += v.x;
+        this.y += v.y;
+        return this;
     }
 
     /**
@@ -145,7 +235,9 @@ public class MyVector {
      * @return this <code>MyVector</code> after the subtraction
      */
     public MyVector sub(MyVector v) {
-        return this.sub(v.x, v.y);
+        this.x -= v.x;
+        this.y -= v.y;
+        return this;
     }
 
     /**
@@ -159,20 +251,6 @@ public class MyVector {
         this.x *= m;
         this.y *= m;
         return this;
-    }
-
-    /**
-     * Returns the quotient of the specified <code>MyVector</code> and the
-     * specified scalar number as a <b>new</b> <code>MyVector</code>
-     *
-     * @param v the <code>MyVector</code> to be divided
-     * @param m the scalar by which the specified <code>MyVectors</code> components
-     *          will be divided
-     * @return a new <code>MyVector</code> that is the quotient of the specified
-     * <code>MyVector</code> and the specified scalar
-     */
-    public MyVector div(MyVector v, float m) {
-        return new MyVector(this.x / m, this.y / m);
     }
 
     /**
@@ -195,7 +273,7 @@ public class MyVector {
      * @return magnitude of the vector
      */
     public float magnitude() {
-        return (float) Math.sqrt(this.x * this.x + this.y * this.y);
+        return (float) sqrt(this.x * this.x + this.y * this.y);
     }
 
     /**
@@ -215,6 +293,31 @@ public class MyVector {
         this.x /= mag;
         this.y /= mag;
 
+        return this;
+    }
+
+    /**
+     * Sets the magnitude of this vector.
+     *
+     * @param mag the new magnitude
+     * @return this {@code MyVector}
+     */
+    public MyVector setMag(float mag) {
+        this.normalize();
+        this.mult(mag);
+        return this;
+    }
+
+    /**
+     * Limits the magnitude of this vector.
+     *
+     * @param max the maximum magnitude
+     * @return this {@code MyVector}
+     */
+    public MyVector limit(float max) {
+        if (magSq() > max * max) {
+            this.setMag(max);
+        }
         return this;
     }
 
@@ -239,7 +342,7 @@ public class MyVector {
      * @throws NullPointerException if the specified {@code myVector} is null
      */
     public float dotProduct(MyVector myVector) {
-        return dotProduct(myVector.x, myVector.y);
+        return this.x * myVector.x + this.y * myVector.y;
     }
 
     /**
@@ -286,6 +389,27 @@ public class MyVector {
     }
 
     /**
+     * Returns the distance between two points.
+     *
+     * @param v1 the first vector
+     * @param v2 the second vector
+     * @return the distance between the two vectors
+     */
+    public static float dist(MyVector v1, MyVector v2) {
+        return (float) sqrt(distanceSq(v1.x, v1.y, v2.x, v2.y));
+    }
+
+    /**
+     * Returns the distance from this vector to another.
+     *
+     * @param v the other vector
+     * @return the distance
+     */
+    public float dist(MyVector v) {
+        return dist(this, v);
+    }
+
+    /**
      * Computes the angle (in degrees) between two Vectors
      *
      * @param v1 the first MyVector
@@ -293,7 +417,7 @@ public class MyVector {
      * @return the angle between the two vectors measured in degrees
      */
     public static float angle(MyVector v1, MyVector v2) {
-        final float delta = (v1.x * v2.x + v1.y * v2.y) / (float) Math.sqrt(
+        final float delta = (v1.x * v2.x + v1.y * v2.y) / (float) sqrt(
                 (v1.x * v1.x + v1.y * v1.y) * (v2.x * v2.x + v2.y * v2.y));
 
         if (delta > 1.0) {
@@ -313,9 +437,17 @@ public class MyVector {
      * @return the bearing of the MyVector represented by this instance in radians
      */
     public double bearing() {
-        double ans = Math.acos(this.x / Math.sqrt(this.x * this.x + this.y * this.y));
+        double ans = Math.acos(this.x / sqrt(this.x * this.x + this.y * this.y));
         // Account for fact that ans is just the shortest angle from x-axis which is always < 180deg
         return this.y < 0 ? ans + Math.PI : ans;
+    }
+
+    /**
+     * Calculate the angle of rotation for this vector (only 2D) in radians.
+     * @return the angle of rotation
+     */
+    public float heading() {
+        return (float) Math.atan2(y, x);
     }
 
     /**
@@ -384,24 +516,71 @@ public class MyVector {
      * @return a random MyVector of with components ranging from 0 to 1
      */
     public static MyVector randomMyVector() {
-        // Optimization: Use ThreadLocalRandom to avoid expensive Random object creation
         ThreadLocalRandom rand = ThreadLocalRandom.current();
-
-        // Choose random floats between 0 and 1
         return new MyVector(rand.nextFloat(), rand.nextFloat());
     }
 
     /**
-     * Rotate the MyVector represented by this instance
+     * Make a new 2D unit vector from an angle.
+     * @param angle the angle in radians
+     * @return the new unit vector
+     */
+    public static MyVector fromAngle(float angle) {
+        return new MyVector((float)cos(angle), (float)sin(angle));
+    }
+
+    /**
+     * Returns a random unit vector.
+     * @return a random unit MyVector
+     */
+    public static MyVector random2D() {
+        return fromAngle(ThreadLocalRandom.current().nextFloat() * (float)Math.PI * 2);
+    }
+
+    /**
+     * Linear interpolate the vector to another vector
+     *
+     * @param v      the vector to interpolate to
+     * @param amount the amount of interpolation; some value between 0.0 (old vector) and 1.0 (new vector). 0.1 is very near the old vector; 0.5 is halfway in between.
+     * @return this
+     */
+    public MyVector lerp(MyVector v, float amount) {
+        this.x += (v.x - this.x) * amount;
+        this.y += (v.y - this.y) * amount;
+        return this;
+    }
+
+    /**
+     * Linear interpolate between two vectors.
+     * @param v1 start vector
+     * @param v2 end vector
+     * @param amount interpolation factor
+     * @return a new MyVector
+     */
+    public static MyVector lerp(MyVector v1, MyVector v2, float amount) {
+        MyVector v = v1.copy();
+        v.lerp(v2, amount);
+        return v;
+    }
+
+    /**
+     * Rotate the MyVector represented by this instance.
+     * OPTIMIZED: Operates in-place without allocation.
      *
      * @param radAngle angle in radians
      */
     public void rotate(float radAngle) {
-        this.set(rotate(this, radAngle));
+        float c = (float) cos(radAngle);
+        float s = (float) sin(radAngle);
+        float nx = this.x * c - this.y * s;
+        float ny = this.x * s + this.y * c;
+        this.x = nx;
+        this.y = ny;
     }
 
     /**
-     * Rotates the MyVector represented by this instance 90deg
+     * Rotates the MyVector represented by this instance 90deg.
+     * OPTIMIZED: Operates in-place.
      */
     public void rotate90() {
         float temp = this.x;
@@ -410,7 +589,8 @@ public class MyVector {
     }
 
     /**
-     * Rotates the MyVector represented by this instance -90deg
+     * Rotates the MyVector represented by this instance -90deg.
+     * OPTIMIZED: Operates in-place.
      */
     public void rotateMin90() {
         float temp = this.y;
@@ -427,5 +607,22 @@ public class MyVector {
     @Override
     public String toString() {
         return "MyVector[" + x + ", " + y + "]";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof MyVector)) {
+            return false;
+        }
+        MyVector v = (MyVector) obj;
+        return Float.compare(x, v.x) == 0 && Float.compare(y, v.y) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        result = 31 * result + Float.floatToIntBits(x);
+        result = 31 * result + Float.floatToIntBits(y);
+        return result;
     }
 }
